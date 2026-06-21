@@ -9,7 +9,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Startseite</title>
+<title>Meine Startseite</title>
 
 <style>
 body {
@@ -21,9 +21,7 @@ body {
   text-align: center;
 }
 
-form {
-  margin-bottom: 20px;
-}
+form { margin-bottom: 20px; }
 
 input, button {
   padding: 10px;
@@ -80,7 +78,7 @@ button {
 
 <body>
 
-<h1>🌍 Startseite</h1>
+<h1>🌍 Meine Startseite</h1>
 
 <form id="linkForm">
   <input type="text" id="name" placeholder="Name" required>
@@ -91,10 +89,10 @@ button {
 </form>
 
 <div class="container">
-  <div class="column" data-col="0"><h3>📰 News</h3></div>
-  <div class="column" data-col="1"><h3>⚽ Sport</h3></div>
-  <div class="column" data-col="2"><h3>🏠 Home</h3></div>
-  <div class="column" data-col="3"><h3>⭐ Sonst</h3></div>
+  <div class="column" data-col="0"><h3>News</h3></div>
+  <div class="column" data-col="1"><h3>Sport</h3></div>
+  <div class="column" data-col="2"><h3>Home</h3></div>
+  <div class="column" data-col="3"><h3>Sonst</h3></div>
 </div>
 
 <script>
@@ -123,37 +121,63 @@ function speichern() {
   });
 }
 
-// ✅ Anzeigen
+// ✅ Anzeige (sortiert!)
 function anzeigen() {
   document.querySelectorAll(".column").forEach(col => {
     const title = col.querySelector("h3").outerHTML;
     col.innerHTML = title;
   });
 
-  links.forEach((link, index) => {
-    const div = document.createElement("div");
-    div.className = "link-item";
-    div.draggable = true;
+  links
+    .sort((a, b) => a.col - b.col || a.order - b.order)
+    .forEach((link, index) => {
 
-    div.innerHTML = `
-      <a href="${link.url}" target="_blank">${link.name}</a>
-      <button onclick="loeschen(${index})">❌</button>
-    `;
+      const div = document.createElement("div");
+      div.className = "link-item";
+      div.draggable = true;
 
-div.addEventListener("dragstart", () => dragIndex = index);
+      div.innerHTML = `
+        <a href="${link.url}" target="_blank">${link.name}</a>
+        <button onclick="loeschen(${index})">❌</button>
+      `;
 
-    const column = document.querySelector(`.column[data-col="${link.col || 0}"]`);
-    column.appendChild(div);
-  });
+      // Drag Start
+      div.addEventListener("dragstart", () => {
+        dragIndex = index;
+      });
+
+      // Drag over
+      div.addEventListener("dragover", e => e.preventDefault());
+
+      // Drop auf Link (Position in Spalte)
+      div.addEventListener("drop", () => {
+        const moved = links[dragIndex];
+        links.splice(dragIndex, 1);
+        links.splice(index, 0, moved);
+
+        links.forEach((l, i) => l.order = i);
+
+        speichern();
+        anzeigen();
+      });
+
+      const col = document.querySelector(`.column[data-col="${link.col || 0}"]`);
+      col.appendChild(div);
+    });
 }
 
-// ✅ Drag & Drop Spalten
+// ✅ Drop auf Spalte
 document.querySelectorAll(".column").forEach(col => {
 
   col.addEventListener("dragover", e => e.preventDefault());
 
   col.addEventListener("drop", () => {
-    links[dragIndex].col = parseInt(col.dataset.col);
+    const target = parseInt(col.dataset.col);
+
+    const moved = links[dragIndex];
+    moved.col = target;
+    moved.order = Date.now();
+
     speichern();
     anzeigen();
   });
@@ -179,60 +203,37 @@ document.getElementById("linkForm").addEventListener("submit", function(e) {
   links.push({
     name: nameInput.value,
     url: urlInput.value,
-    col: 0
+    col: 0,
+    order: Date.now()
   });
 
   speichern();
   anzeigen();
   this.reset();
 });
-//~ document.getElementById("linkForm").addEventListener("submit", function(e) {
-  //~ e.preventDefault();
 
-  //~ links.push({
-    //~ name: name.value,
-    //~ url: url.value,
-    //~ col: 0
-  //~ });
-
-  //~ speichern();
-  //~ anzeigen();
-  //~ this.reset();
-//~ });
-
-// ✅ Backup Export
+// ✅ Backup Export mit Zeitstempel
 function exportLinks() {
   const now = new Date();
 
-  const timestamp =
+  const ts =
     now.getFullYear().toString() +
-    String(now.getMonth() + 1).padStart(2, "0") +
-    String(now.getDate()).padStart(2, "0") + "_" +
-    String(now.getHours()).padStart(2, "0") +
-    String(now.getMinutes()).padStart(2, "0") +
-    String(now.getSeconds()).padStart(2, "0");
+    String(now.getMonth()+1).padStart(2,"0") +
+    String(now.getDate()).padStart(2,"0") + "_" +
+    String(now.getHours()).padStart(2,"0") +
+    String(now.getMinutes()).padStart(2,"0") +
+    String(now.getSeconds()).padStart(2,"0");
 
-  const filename = "Stpg_" + timestamp + ".json";
+  const filename = "Stpg_" + ts + ".json";
 
-  const blob = new Blob([JSON.stringify(links, null, 2)], {
-    type: "application/json"
-  });
-
+  const blob = new Blob([JSON.stringify(links, null, 2)], {type:"application/json"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = filename;
   a.click();
 }
 
-//~ function exportLinks() {
-  //~ const blob = new Blob([JSON.stringify(links, null, 2)], {type: "application/json"});
-  //~ const a = document.createElement("a");
-  //~ a.href = URL.createObjectURL(blob);
-  //~ a.download = "backup.json";
-  //~ a.click();
-//~ }
-
-// ✅ Backup Import
+// ✅ Import
 function importLinks(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -259,4 +260,3 @@ laden();
 
 </body>
 </html>
-

@@ -1,15 +1,9 @@
-<!--
-   index.html
-   
-   Copyright 2026 jk <jk@JK-WIN10>
-   unter Hilfe von MS Copilot
--->
 <!DOCTYPE html>
 <html lang="de">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Meine Startseite</title>
+<title>Startseite</title>
 
 <style>
 body {
@@ -20,8 +14,6 @@ body {
   padding: 20px;
   text-align: center;
 }
-
-form { margin-bottom: 20px; }
 
 input, button {
   padding: 10px;
@@ -54,16 +46,39 @@ button {
   padding: 10px;
   margin: 5px 0;
   border-radius: 8px;
-  cursor: grab;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: relative;
 }
 
 .link-item a {
   color: yellow;
   text-decoration: none;
   font-weight: bold;
+}
+
+.menu-btn {
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.menu {
+  display: none;
+  position: absolute;
+  right: 5px;
+  top: 30px;
+  background: #003366;
+  border-radius: 8px;
+  padding: 5px;
+  z-index: 10;
+}
+
+.menu button {
+  display: block;
+  width: 100%;
+  margin: 2px 0;
+  font-size: 12px;
 }
 
 @media(max-width:900px){
@@ -78,7 +93,7 @@ button {
 
 <body>
 
-<h1>🌍 Meine Startseite</h1>
+<h1>🌍 Startseite</h1>
 
 <form id="linkForm">
   <input type="text" id="name" placeholder="Name" required>
@@ -89,10 +104,10 @@ button {
 </form>
 
 <div class="container">
-  <div class="column" data-col="0"><h3>News</h3></div>
-  <div class="column" data-col="1"><h3>Sport</h3></div>
-  <div class="column" data-col="2"><h3>Home</h3></div>
-  <div class="column" data-col="3"><h3>Sonst</h3></div>
+  <div class="column" data-col="0"><h3>📰 News</h3></div>
+  <div class="column" data-col="1"><h3>⚽ Sport</h3></div>
+  <div class="column" data-col="2"><h3>🏠 Home</h3></div>
+  <div class="column" data-col="3"><h3>⭐ Sonst</h3></div>
 </div>
 
 <script>
@@ -121,80 +136,132 @@ function speichern() {
   });
 }
 
-// ✅ Anzeige (sortiert!)
+// ✅ Anzeige
 function anzeigen() {
   document.querySelectorAll(".column").forEach(col => {
     const title = col.querySelector("h3").outerHTML;
     col.innerHTML = title;
   });
 
-  links
-    .sort((a, b) => a.col - b.col || a.order - b.order)
-    .forEach((link, index) => {
+  links.sort((a,b)=>a.col-b.col||a.order-b.order)
+  .forEach((link,index)=>{
 
-      const div = document.createElement("div");
-      div.className = "link-item";
-      div.draggable = true;
+    const div = document.createElement("div");
+    div.className="link-item";
+    div.draggable=true;
 
-      div.innerHTML = `
-        <a href="${link.url}" target="_blank">${link.name}</a>
-        <button onclick="loeschen(${index})">❌</button>
-      `;
+    div.innerHTML = `
+      <a href="${link.url}" target="_blank">${link.name}</a>
+      <span class="menu-btn" onclick="toggleMenu(${index})">⋮</span>
 
-      // Drag Start
-      div.addEventListener("dragstart", () => {
-        dragIndex = index;
-      });
+      <div class="menu" id="menu-${index}">
+        <button onclick="hoch(${index})">⬆ Hoch</button>
+        <button onclick="runter(${index})">⬇ Runter</button>
+        <button onclick="linksBewegen(${index})">⬅ Links</button>
+        <button onclick="rechtsBewegen(${index})">➡ Rechts</button>
+        <button onclick="loeschen(${index})">❌ Löschen</button>
+      </div>
+    `;
 
-      // Drag over
-      div.addEventListener("dragover", e => e.preventDefault());
+    div.addEventListener("dragstart",()=>dragIndex=index);
+    div.addEventListener("dragover",e=>e.preventDefault());
 
-      // Drop auf Link (Position in Spalte)
-      div.addEventListener("drop", () => {
-        const moved = links[dragIndex];
-        links.splice(dragIndex, 1);
-        links.splice(index, 0, moved);
-
-        links.forEach((l, i) => l.order = i);
-
-        speichern();
-        anzeigen();
-      });
-
-      const col = document.querySelector(`.column[data-col="${link.col || 0}"]`);
-      col.appendChild(div);
+    div.addEventListener("drop",()=>{
+      const moved=links[dragIndex];
+      links.splice(dragIndex,1);
+      links.splice(index,0,moved);
+      links.forEach((l,i)=>l.order=i);
+      speichern(); anzeigen();
     });
+
+    document.querySelector(`.column[data-col="${link.col||0}"]`).appendChild(div);
+  });
 }
 
-// ✅ Drop auf Spalte
-document.querySelectorAll(".column").forEach(col => {
+// ✅ Menü
+function toggleMenu(i){
+  document.querySelectorAll(".menu").forEach(m=>m.style.display="none");
+  const m=document.getElementById("menu-"+i);
+  m.style.display = m.style.display==="block" ? "none" : "block";
+}
 
-  col.addEventListener("dragover", e => e.preventDefault());
-
-  col.addEventListener("drop", () => {
-    const target = parseInt(col.dataset.col);
-
-    const moved = links[dragIndex];
-    moved.col = target;
-    moved.order = Date.now();
-
-    speichern();
-    anzeigen();
-  });
-
+document.addEventListener("click",e=>{
+  if(!e.target.closest(".menu") && !e.target.closest(".menu-btn")){
+    document.querySelectorAll(".menu").forEach(m=>m.style.display="none");
+  }
 });
 
-// ✅ Löschen
-function loeschen(index) {
-  if (!confirm("Link löschen?")) return;
+// ✅ Moves
+function hoch(i){
+  // nur innerhalb derselben Spalte verschieben
+  const aktueller = links[i];
 
-  links.splice(index, 1);
+  // finde alle Links in derselben Spalte
+  const gleicheSpalte = links
+    .map((l, idx) => ({...l, idx}))
+    .filter(l => l.col === aktueller.col)
+    .sort((a, b) => a.order - b.order);
+
+  // finde Position in der Spalte
+  const pos = gleicheSpalte.findIndex(l => l.idx === i);
+
+  if (pos <= 0) return; // schon oben
+
+  const andererIndex = gleicheSpalte[pos - 1].idx;
+
+  // order tauschen
+  const tmp = links[i].order;
+  links[i].order = links[andererIndex].order;
+  links[andererIndex].order = tmp;
+
   speichern();
   anzeigen();
 }
 
-// ✅ Hinzufügen
-document.getElementById("linkForm").addEventListener("submit", function(e) {
+
+function runter(i){
+  if(i >= links.length - 1) return;
+
+  const tmp = links[i].order;
+  links[i].order = links[i+1].order;
+  links[i+1].order = tmp;
+
+  speichern();
+  anzeigen();
+}
+
+
+function linksBewegen(i){
+  if(links[i].col>0){links[i].col--; speichern(); anzeigen();}
+}
+
+function rechtsBewegen(i){
+  if(links[i].col<3){links[i].col++; speichern(); anzeigen();}
+}
+
+// ✅ löschen
+function loeschen(i){
+  if(!confirm("Link löschen?")) return;
+  links.splice(i,1);
+  speichern(); anzeigen();
+}
+
+// ✅ hinzufügen
+//~ linkForm.onsubmit=e=>{
+  //~ e.preventDefault();
+
+  //~ links.push({
+    //~ name:name.value,
+    //~ url:url.value,
+    //~ col:0,
+    //~ order:Date.now()
+  //~ });
+
+  //~ speichern();
+  //~ anzeigen();
+  //~ linkForm.reset();
+//~ };
+linkForm.onsubmit = e => {
   e.preventDefault();
 
   const nameInput = document.getElementById("name");
@@ -209,49 +276,41 @@ document.getElementById("linkForm").addEventListener("submit", function(e) {
 
   speichern();
   anzeigen();
-  this.reset();
-});
+  linkForm.reset();
+};
+// ✅ Backup
+function exportLinks(){
+  const d=new Date();
+  const ts=d.getFullYear()+
+    String(d.getMonth()+1).padStart(2,"0")+
+    String(d.getDate()).padStart(2,"0")+"_"+ 
+    String(d.getHours()).padStart(2,"0")+
+    String(d.getMinutes()).padStart(2,"0")+
+    String(d.getSeconds()).padStart(2,"0");
 
-// ✅ Backup Export mit Zeitstempel
-function exportLinks() {
-  const now = new Date();
-
-  const ts =
-    now.getFullYear().toString() +
-    String(now.getMonth()+1).padStart(2,"0") +
-    String(now.getDate()).padStart(2,"0") + "_" +
-    String(now.getHours()).padStart(2,"0") +
-    String(now.getMinutes()).padStart(2,"0") +
-    String(now.getSeconds()).padStart(2,"0");
-
-  const filename = "Stpg_" + ts + ".json";
-
-  const blob = new Blob([JSON.stringify(links, null, 2)], {type:"application/json"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = filename;
+  const blob=new Blob([JSON.stringify(links,null,2)]);
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="Stpg_"+ts+".json";
   a.click();
 }
 
 // ✅ Import
-function importLinks(event) {
-  const file = event.target.files[0];
-  if (!file) return;
+function importLinks(e){
+  const file=e.target.files[0];
+  if(!file) return;
 
-  const reader = new FileReader();
-
-  reader.onload = function(e) {
-    const data = JSON.parse(e.target.result);
-    if (Array.isArray(data)) {
-      if (confirm("Backup laden?")) {
-        links = data;
-        speichern();
-        anzeigen();
+  const r=new FileReader();
+  r.onload=ev=>{
+    const data=JSON.parse(ev.target.result);
+    if(Array.isArray(data)){
+      if(confirm("Backup laden?")){
+        links=data;
+        speichern(); anzeigen();
       }
     }
   };
-
-  reader.readAsText(file);
+  r.readAsText(file);
 }
 
 // ✅ Start

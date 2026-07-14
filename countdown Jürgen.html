@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rente Jürgen</title>
+  <style>
+    :root{
+      --bg: #32199e;
+      --accent: #ffc773;
+      --accent-weak: #ffdca6;
+      --tile-bg: rgba(255,255,255,0.06);
+      --tile-bd: rgba(255,255,255,0.18);
+      --tile-glow: 0 10px 28px rgba(255,199,115,0.22);
+      color-scheme: dark;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: radial-gradient(1400px 900px at 65% -10%, rgba(255,199,115,0.15), transparent 50%),
+                  radial-gradient(1000px 700px at 10% 110%, rgba(255,199,115,0.12), transparent 50%),
+                  var(--bg);
+      color: var(--accent);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    }
+
+    .wrap {
+      min-height: 100%;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .card {
+      width: min(980px, 94vw);
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--tile-bd);
+      border-radius: 18px;
+      padding: 28px;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 14px 40px rgba(0,0,0,0.35);
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 2rem;
+      color: var(--accent);
+      text-shadow: 0 0 18px rgba(255,199,115,0.18);
+    }
+
+    .sub {
+      margin: 0 0 16px;
+      color: rgba(255,255,255,0.75);
+    }
+
+    .target {
+      padding: 8px 12px;
+      border: 1px dashed rgba(255,199,115,0.45);
+      border-radius: 10px;
+      color: var(--accent-weak);
+      background: rgba(255,199,115,0.08);
+      display: inline-block;
+      margin-bottom: 16px;
+    }
+
+    .divider {
+      margin: 18px 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,199,115,0.45), transparent);
+      border: none;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 520px) {
+      .grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .tile {
+      background: var(--tile-bg);
+      border: 1px solid var(--tile-bd);
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+      box-shadow: var(--tile-glow);
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .tile::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,0.1), transparent 40%);
+      mix-blend-mode: screen;
+    }
+
+    .value {
+      font-size: 2.2rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      color: var(--accent);
+      text-shadow: 0 6px 22px rgba(255,199,115,0.25);
+    }
+
+    .label {
+      margin-top: 6px;
+      color: var(--accent-weak);
+      font-size: 0.9rem;
+    }
+
+    .pulse { animation: pulse 0.6s ease; }
+    @keyframes pulse {
+      0% { text-shadow: 0 0 0 rgba(255,199,115,0); }
+      50% { text-shadow: 0 0 22px rgba(255,199,115,0.55); }
+      100% { text-shadow: 0 0 0 rgba(255,199,115,0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <main class="card">
+      <header>
+        <h1>Arbeitsende Jürgen</h1>
+        <br>
+        <div class="target" id="targetText">Ziel:</div>
+      </header>
+
+      <hr class="divider" />
+
+      <section class="grid">
+        <div class="tile"><div class="value" id="years">0</div><div class="label">Jahr</div></div>
+        <div class="tile"><div class="value" id="months">0</div><div class="label">Monate</div></div>
+        <div class="tile"><div class="value" id="weeks">0</div><div class="label">Wochen</div></div>
+        <div class="tile"><div class="value" id="days">0</div><div class="label">Tage</div></div>
+        <div class="tile"><div class="value" id="hours">0</div><div class="label">Stunden</div></div>
+        <div class="tile"><div class="value" id="minutes">0</div><div class="label">Minuten</div></div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const targetDate = new Date(2027, 9, 29, 12, 30);
+
+    const el = {
+      years: document.getElementById('years'),
+      months: document.getElementById('months'),
+      weeks: document.getElementById('weeks'),
+      days: document.getElementById('days'),
+      hours: document.getElementById('hours'),
+      minutes: document.getElementById('minutes'),
+      targetText: document.getElementById('targetText')
+    };
+
+    el.targetText.textContent = `Ziel: ${targetDate.toLocaleString()}`;
+
+    function daysInMonth(y, m) {
+      return new Date(y, m + 1, 0).getDate();
+    }
+
+    function addYearsMonths(base, addY, addM) {
+      let y = base.getFullYear() + addY;
+      let m = base.getMonth() + addM;
+      y += Math.floor(m / 12);
+      m = (m % 12 + 12) % 12;
+      let d = Math.min(base.getDate(), daysInMonth(y, m));
+      return new Date(y, m, d, base.getHours(), base.getMinutes());
+    }
+
+    function diffCalendar(now, target) {
+      if (now >= target) return {years:0, months:0, weeks:0, days:0, hours:0, minutes:0};
+
+      let years = 0;
+      while (addYearsMonths(now, years + 1, 0) <= target) years++;
+
+      let months = 0;
+      while (addYearsMonths(now, years, months + 1) <= target) months++;
+
+      const anchor = addYearsMonths(now, years, months);
+      let ms = target - anchor;
+
+      const min = 60000, hr = min * 60, day = hr * 24, week = day * 7;
+
+      const weeks = Math.floor(ms / week); ms -= weeks * week;
+      const days = Math.floor(ms / day);   ms -= days * day;
+      const hours = Math.floor(ms / hr);   ms -= hours * hr;
+      const minutes = Math.floor(ms / min);
+
+      return {years, months, weeks, days, hours, minutes};
+    }
+
+    function setValue(elm, value) {
+      const txt = String(value);
+      if (elm.textContent !== txt) {
+        elm.textContent = txt;
+        elm.classList.remove('pulse');
+        void elm.offsetWidth;
+        elm.classList.add('pulse');
+      }
+    }
+
+    function update() {
+      const now = new Date();
+      const d = diffCalendar(now, targetDate);
+
+      setValue(el.years, d.years);
+      setValue(el.months, d.months);
+      setValue(el.weeks, d.weeks);
+      setValue(el.days, d.days);
+      setValue(el.hours, d.hours.toString().padStart(2,'0'));
+      setValue(el.minutes, d.minutes.toString().padStart(2,'0'));
+    }
+
+    update();
+
+    function tick() {
+      update();
+      const now = new Date();
+      const wait = 60000 - (now.getSeconds() * 1000 + now.getMilliseconds());
+      setTimeout(tick, wait);
+    }
+    tick();
+  </script>
+</body>
+</html>

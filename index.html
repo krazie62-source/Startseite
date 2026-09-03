@@ -7,18 +7,23 @@
 
 <style>
 
-googleSearch {
+#googleSearch {
   margin-bottom: 20px;
 }
 
-googleSearch input {
+#googleSearch input {
   width: 600px;
   max-width: 90%;
   padding: 15px;
   font-size: 20px;
   border-radius: 30px;
   border: none;
+  outline: none;
   text-align: center;
+}
+
+#googleSearch input:focus {
+  box-shadow: 0 0 10px yellow;
 }
   
 body {
@@ -107,16 +112,16 @@ button {
 </head>
 
 <body>
-
-<h1>🌍 Startseite</h1>
-
 <form id="googleSearch"
       action="https://www.google.com/search"
       method="get"
-      targeturchsuchen..."
-      autofocus>
+      target="_blank">
 
-</form>
+    <input type="text"
+           name="q"
+           placeholder="Google
+<h1>🌍 Startseite</h1>
+
   
 <form action="https://www.google.com/search" method="get" target="_blank" id="older="Google durchsuchen..."
     style="
